@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/**/*.{js,ts,jsx,tsx,mdx}", // To mówi: szukaj we wszystkich folderach w src
+    "./src/**/*.{js,ts,jsx,tsx,mdx}", // To mówi: szukaj we wszystkich podfolderach src
   ],
   theme: {
     extend: {
