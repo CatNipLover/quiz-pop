@@ -84,7 +84,7 @@ export default function DashboardPage() {
         <nav className="hidden lg:flex w-64 flex-col gap-2 bg-white border-2 border-gray-200 rounded-3xl p-4 sticky top-24 h-[calc(100vh-120px)]">
             <SidebarItem icon={Home} label="Start" active href="/" />
             <SidebarItem icon={Trophy} label="Ranking" href="/leaderboard" />
-            <SidebarItem icon={Backpack} label="Ekwipunek" href="#" />
+            <SidebarItem icon={Backpack} label="Ekwipunek" href="/inventory" />
             <SidebarItem icon={ShoppingBag} label="Sklep" href="/shop" />
             <SidebarItem icon={Settings} label="Ustawienia" href="/settings" />
 
@@ -115,17 +115,32 @@ export default function DashboardPage() {
 
             <div>
               <h2 className="text-2xl font-black text-gray-800 mb-6">Wybierz Wyzwanie</h2>
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <Link href="/quiz?category=js">
-                  <CategoryCard title="JavaScript" icon={Code} level={4} borderClass="border-amber-400 border-b-amber-600 text-amber-500" />
+                  <CategoryCard 
+                      title="JavaScript" icon={Code} level={4} 
+                      borderClass="border-amber-400 border-b-amber-600 text-amber-500"
+                  />
                 </Link>
+
                 <Link href="/quiz?category=css">
-                  <CategoryCard title="CSS Master" icon={Palette} level={8} borderClass="border-blue-400 border-b-blue-700 text-blue-500" />
+                  <CategoryCard 
+                      title="CSS Master" icon={Palette} level={8} 
+                      borderClass="border-blue-400 border-b-blue-700 text-blue-500"
+                  />
                 </Link>
+
                 <Link href="/quiz?category=react">
-                  <CategoryCard title="React.js" icon={Atom} level={2} borderClass="border-purple-400 border-b-purple-700 text-purple-500" />
+                  <CategoryCard 
+                      title="React.js" icon={Atom} level={2} 
+                      borderClass="border-purple-400 border-b-purple-700 text-purple-500"
+                  />
                 </Link>
-                <CategoryCard title="Backend" icon={Database} level={0} locked={true} />
+
+                <CategoryCard 
+                    title="Backend" icon={Database} level={0} locked={true}
+                />
               </div>
             </div>
           </section>
@@ -137,7 +152,6 @@ export default function DashboardPage() {
                   </div>
                   
                   <h3 className="font-black text-xl text-gray-800 mt-2">{name}</h3>
-                  
                   <span className="text-gray-400 font-bold text-sm">Ranga: Junior Dev</span>
                   
                   <div className="w-full mt-5 text-left">
@@ -158,9 +172,17 @@ export default function DashboardPage() {
 
               <div>
                   <h4 className="font-extrabold text-gray-400 text-xs uppercase tracking-widest mb-4">Ostatnie Osiągnięcia</h4>
-                  <AchievementRow icon={<Target size={20} />} title="Snajper" desc="100% poprawnych odp." colorClass="bg-orange-100 text-orange-600 border-orange-600" />
-                  <AchievementRow icon={<BookOpen size={20} />} title="Kujon" desc="Ukończ 50 quizów" colorClass="bg-blue-100 text-blue-700 border-blue-700" />
-                  <AchievementRow icon={<Crown size={20} />} title="Król JS" desc="Zablokowane" locked={true} />
+                  <AchievementRow 
+                      icon={<Target size={20} />} title="Snajper" desc="100% poprawnych odp."
+                      colorClass="bg-orange-100 text-orange-600 border-orange-600"
+                  />
+                  <AchievementRow 
+                      icon={<BookOpen size={20} />} title="Kujon" desc="Ukończ 50 quizów"
+                      colorClass="bg-blue-100 text-blue-700 border-blue-700"
+                  />
+                  <AchievementRow 
+                      icon={<Crown size={20} />} title="Król JS" desc="Zablokowane" locked={true}
+                  />
               </div>
           </aside>
 
