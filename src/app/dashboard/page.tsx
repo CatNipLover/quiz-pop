@@ -172,17 +172,9 @@ export default function DashboardPage() {
 
               <div>
                   <h4 className="font-extrabold text-gray-400 text-xs uppercase tracking-widest mb-4">Ostatnie Osiągnięcia</h4>
-                  <AchievementRow 
-                      icon={<Target size={20} />} title="Snajper" desc="100% poprawnych odp."
-                      colorClass="bg-orange-100 text-orange-600 border-orange-600"
-                  />
-                  <AchievementRow 
-                      icon={<BookOpen size={20} />} title="Kujon" desc="Ukończ 50 quizów"
-                      colorClass="bg-blue-100 text-blue-700 border-blue-700"
-                  />
-                  <AchievementRow 
-                      icon={<Crown size={20} />} title="Król JS" desc="Zablokowane" locked={true}
-                  />
+                  <AchievementRow icon={<Target size={20} />} title="Snajper" desc="100% poprawnych odp." colorClass="bg-orange-100 text-orange-600 border-orange-600" />
+                  <AchievementRow icon={<BookOpen size={20} />} title="Kujon" desc="Ukończ 50 quizów" colorClass="bg-blue-100 text-blue-700 border-blue-700" />
+                  <AchievementRow icon={<Crown size={20} />} title="Król JS" desc="Zablokowane" locked={true} />
               </div>
           </aside>
 

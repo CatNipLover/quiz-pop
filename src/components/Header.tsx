@@ -1,51 +1,38 @@
 "use client";
 
-import Link from "next/link";
-import { Heart, Zap, User, Star } from "lucide-react";
 import { useGame } from "@/context/GameContext";
+import { Heart, Star } from "lucide-react";
+import Link from "next/link";
 
 export default function Header() {
-  const { lives, xp, level } = useGame();
+  const { xp, level, lives } = useGame();
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-card border-b-2 border-gray-border px-4 py-3 shadow-sm">
-      <div className="max-w-5xl mx-auto flex items-center justify-between">
+    <header className="flex items-center justify-between p-4 bg-white border-b-2 border-gray-100 sticky top-0 z-50">
+      
+      {/* Logo */}
+      <Link href="/" className="flex items-center gap-2">
+        <div className="text-3xl">🦊</div>
+        <h1 className="text-2xl font-black text-gray-800 hidden sm:block">
+          Quiz<span className="text-primary">Pop</span>
+        </h1>
+      </Link>
+
+      {/* Statystyki*/}
+      <div className="flex items-center gap-3 font-bold">
         
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group cursor-pointer">
-           <span className="text-3xl group-hover:animate-bounce">🦊</span>
-           <span className="text-2xl font-black text-primary tracking-tight hidden sm:block">
-             QuizPop
-           </span>
-        </Link>
-
-        {/* Statystyki */}
-        <div className="flex items-center gap-3 sm:gap-4">
-            
-            {/* Level i XP */}
-            <div className="hidden sm:flex items-center gap-2 font-bold text-gray-400">
-                <Star className="text-yellow-400 fill-yellow-400" size={20} />
-                <span className="text-gray-600">Lvl {level}</span>
-                <span className="text-xs bg-gray-100 px-2 py-1 rounded-md">
-                  {xp} XP
-                </span>
-            </div>
-
-            {/* Życia */}
-            <div className={`
-              flex items-center gap-2 font-bold px-3 py-1 rounded-full border transition-colors
-              ${lives > 1 ? "text-error bg-red-50 border-red-100" : "text-gray-500 bg-gray-100 border-gray-200"}
-            `}>
-                <Heart className={`w-5 h-5 ${lives > 0 ? "fill-error text-error" : "text-gray-400"}`} />
-                <span>{lives}</span>
-            </div>
-
-            {/* Profil */}
-            <div className="w-10 h-10 bg-primary-light rounded-xl border-2 border-primary flex items-center justify-center text-primary-dark font-bold">
-                <User size={20} />
-            </div>
+        {/* Level i XP */}
+        <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl text-gray-700 border-2 border-gray-100">
+            <Star size={20} className="text-yellow-400 fill-yellow-400" />
+            <span>Lvl {level}</span>
+            <span className="text-gray-400 text-sm ml-1">{xp} XP</span>
         </div>
 
+        {/* Życia */}
+        <div className="flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-xl text-red-500 border-2 border-red-100">
+            <Heart size={20} className="fill-current" />
+            <span>{lives}</span>
+        </div>
       </div>
     </header>
   );
