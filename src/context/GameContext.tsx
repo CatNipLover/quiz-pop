@@ -139,16 +139,26 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const addXp = async (amount: number) => {
     if (!user) return;
+    
     let newXp = xp + amount;
     let newLevel = level;
     let newLives = lives;
-    if (newXp >= 100) {
+
+    while (newXp >= 100) {
       newLevel += 1;
       newXp = newXp - 100;
       newLives = 5;
     }
-    setXp(newXp); setLevel(newLevel); setLives(newLives);
-    await supabase.from('profiles').update({ xp: newXp, level: newLevel, lives: newLives }).eq('id', user.id);
+
+    setXp(newXp); 
+    setLevel(newLevel); 
+    setLives(newLives);
+    
+    await supabase.from('profiles').update({ 
+      xp: newXp, 
+      level: newLevel, 
+      lives: newLives 
+    }).eq('id', user.id);
   };
 
   const loseLife = async () => {
