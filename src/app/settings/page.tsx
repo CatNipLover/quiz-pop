@@ -13,15 +13,19 @@ export default function SettingsPage() {
   const { name, avatar, updateProfile } = useGame();
   const router = useRouter();
 
-  // Lokalny stan formularza
   const [inputName, setInputName] = useState(name);
   const [selectedAvatar, setSelectedAvatar] = useState(avatar);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (inputName.trim() === "") return alert("Podaj jakieś imię!");
+    if (inputName.length > 15) return alert("Za długa ksywka (max 15 znaków)!");
+
+    setIsSaving(true);
+    await updateProfile(inputName, selectedAvatar); 
+    setIsSaving(false);
     
-    updateProfile(inputName, selectedAvatar); // Zapisz w Context
-    router.push("/dashboard"); // Wróć do gry
+    router.push("/dashboard");
   };
 
   return (
@@ -37,7 +41,6 @@ export default function SettingsPage() {
 
       <div className="bg-white p-6 rounded-3xl border-2 border-gray-200 shadow-sm space-y-6">
         
-        {/* Zmiana Nazwy */}
         <div className="space-y-2">
             <label className="font-black text-gray-700 ml-1">Twoja Ksywka</label>
             <input 
@@ -50,7 +53,6 @@ export default function SettingsPage() {
             />
         </div>
 
-        {/* Wybór Avatara */}
         <div className="space-y-2">
             <label className="font-black text-gray-700 ml-1">Wybierz Awatar</label>
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
@@ -71,10 +73,11 @@ export default function SettingsPage() {
             </div>
         </div>
 
-        <div onClick={handleSave}>
+        <div onClick={!isSaving ? handleSave : undefined}>
             <Button3D variant="success" fullWidth>
                 <div className="flex items-center justify-center gap-2">
-                    <Save size={20} /> Zapisz Zmiany
+                    <Save size={20} /> 
+                    {isSaving ? "Zapisywanie..." : "Zapisz Zmiany"}
                 </div>
             </Button3D>
         </div>

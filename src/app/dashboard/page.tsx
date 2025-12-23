@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { 
-  Code, Palette, Atom, Database, Lock, Zap, Target, BookOpen, Crown, 
+  Code, Palette, Atom, Database, Lock, Target, BookOpen, Crown, 
   Home, Trophy, ShoppingBag, Settings, Backpack, LogOut
 } from "lucide-react";
 import { useGame } from "@/context/GameContext";
@@ -63,16 +62,14 @@ const SidebarItem = ({ icon: Icon, label, active = false, href, onClick }: any) 
 };
 
 export default function DashboardPage() {
-  const { xp, level, resetProgress, name, avatar } = useGame();
+  const { xp, level, logout, name, avatar } = useGame();
   
   const xpPercentage = Math.min(xp, 100); 
-  const router = useRouter();
 
-  const handleLogout = () => {
-    const confirm = window.confirm("Czy na pewno chcesz zresetować postępy i wylogować?");
+  const handleLogout = async () => {
+    const confirm = window.confirm("Czy na pewno chcesz się wylogować?");
     if (confirm) {
-        resetProgress();
-        router.push("/");
+        await logout();
     }
   };
 

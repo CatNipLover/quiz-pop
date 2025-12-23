@@ -2,9 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Trophy, Backpack, ShoppingBag, Settings } from "lucide-react";
+import { Home, Trophy, Backpack, ShoppingBag, Settings, LucideIcon } from "lucide-react";
 
-const NavItem = ({ href, icon: Icon, label }: any) => {
+type NavItemProps = {
+    href: string;
+    icon: LucideIcon;
+    label: string;
+};
+
+const NavItem = ({ href, icon: Icon, label }: NavItemProps) => {
   const pathname = usePathname();
   const isActive = pathname === href;
 
@@ -20,7 +26,10 @@ const NavItem = ({ href, icon: Icon, label }: any) => {
 
 export default function MobileMenu() {
   const pathname = usePathname();
-  if (pathname === "/") return null;
+  
+  const hiddenRoutes = ["/", "/login", "/register"];
+
+  if (hiddenRoutes.includes(pathname)) return null;
 
   return (
     <div className="fixed bottom-0 left-0 w-full h-[70px] bg-white border-t border-gray-200 flex justify-around items-center z-50 pb-safe lg:hidden shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
