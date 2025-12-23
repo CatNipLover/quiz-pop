@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Button3D from "@/components/Button3D";
 import { useGame } from "@/context/GameContext";
-import { ArrowLeft, Trophy, Medal, Crown } from "lucide-react";
+import { ArrowLeft, Trophy, Medal } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/utils/supabase";
 
@@ -21,7 +21,7 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('id, username, xp, avatar')
         .order('xp', { ascending: false })
@@ -39,51 +39,44 @@ export default function LeaderboardPage() {
   return (
     <div className="max-w-2xl mx-auto py-8 px-4 space-y-8">
       
-      {/* Nagłówek */}
       <div className="text-center space-y-2">
-        <div className="inline-block p-4 bg-yellow-100 rounded-full text-yellow-500 mb-2 animate-bounce-slow">
-            <Trophy size={40} fill="currentColor" />
+        <div className="inline-block p-4 bg-purple-100 rounded-full text-purple-600 mb-2 animate-bounce-slow">
+            <Trophy size={40} />
         </div>
         <h1 className="text-4xl font-black text-gray-800">Ranking Graczy</h1>
-        <p className="text-gray-500 font-bold">Wspinaj się na szczyt!</p>
+        <p className="text-gray-500 font-bold">Najlepsi z najlepszych!</p>
       </div>
 
-      <div className="space-y-4">
+      <div className="bg-white rounded-3xl border-2 border-gray-200 border-b-[6px] overflow-hidden min-h-[300px]">
         {isLoading ? (
-            <div className="text-center py-10 font-bold text-gray-400 animate-pulse">
-                Ładowanie mistrzów...
+            <div className="p-10 text-center font-bold text-gray-400 animate-pulse">
+                Ładowanie rankingu...
             </div>
         ) : (
             players.map((player, index) => {
-                const rank = index + 1;
-                const isTop3 = rank <= 3;
-                const isMe = player.username === name; 
-
+                const isMe = player.username === name;
+                const isTop3 = index < 3;
+                
                 return (
                     <div 
-                        key={player.id}
+                        key={player.id} 
                         className={`
-                            relative flex items-center justify-between p-4 rounded-2xl border-2 border-b-4 
-                            transition-transform hover:scale-[1.02]
-                            ${isMe 
-                                ? "bg-primary text-white border-primary-dark shadow-lg scale-105 z-10"
-                                : "bg-white border-gray-border text-gray-700"
-                            }
+                            flex items-center justify-between p-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors relative
+                            ${isMe ? "bg-purple-50 hover:bg-purple-100" : ""}
                         `}
                     >
                         <div className="flex items-center gap-4">
                             <div className={`
-                                font-black text-2xl w-8 text-center
-                                ${isTop3 ? "text-yellow-500" : "text-gray-400"}
-                                ${isMe ? "text-white" : ""}
+                                w-8 h-8 flex items-center justify-center font-black rounded-full text-sm
+                                ${index === 0 ? "bg-yellow-400 text-white shadow-sm" : 
+                                  index === 1 ? "bg-gray-300 text-white shadow-sm" : 
+                                  index === 2 ? "bg-orange-400 text-white shadow-sm" : "text-gray-400 bg-gray-100"}
                             `}>
-                                {rank === 1 ? <Crown size={28} className="text-yellow-400 fill-yellow-400" /> : `#${rank}`}
+                                {index + 1}
                             </div>
                             
-                            <div className="text-3xl bg-gray-50 rounded-full w-12 h-12 flex items-center justify-center border-2 border-gray-100">
-                                {player.avatar}
-                            </div>
-
+                            <div className="text-3xl">{player.avatar}</div>
+                            
                             <div>
                                 <h3 className="font-bold text-lg leading-tight">{player.username}</h3>
                                 {isMe && <span className="text-xs uppercase font-black bg-white/20 px-2 py-0.5 rounded text-white">To Ty!</span>}
@@ -111,10 +104,10 @@ export default function LeaderboardPage() {
         )}
       </div>
 
-      <Link href="/" className="block mt-8">
+      <Link href="/dashboard" className="block mt-8">
         <Button3D variant="neutral" fullWidth>
             <div className="flex items-center justify-center gap-2">
-                <ArrowLeft size={20} /> Wróć do Menu
+                <ArrowLeft size={20} /> Wróć do Mapy
             </div>
         </Button3D>
       </Link>

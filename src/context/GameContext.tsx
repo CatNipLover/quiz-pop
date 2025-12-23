@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/utils/supabase";
-import { useRouter, usePathname } from "next/navigation"; // <--- 1. DODANO usePathname
+import { useRouter, usePathname } from "next/navigation";
 
 type GameContextType = {
   xp: number;
@@ -17,7 +17,6 @@ type GameContextType = {
   buyLives: (cost: number) => Promise<boolean>;
   resetProgress: () => Promise<void>;
   updateProfile: (name: string, avatar: string) => Promise<void>;
-  loginAsGuest: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<{ error: string | null }>;
   registerWithEmail: (email: string, pass: string, name: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
@@ -36,36 +35,28 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   
   const router = useRouter();
-  const pathname = usePathname(); // <--- 2. Pobieramy aktualną ścieżkę
+  const pathname = usePathname();
 
-  // --- OCHRONA TRAS (CLIENT SIDE) ---
   useEffect(() => {
-    // Lista stron chronionych
+    if (isLoading) return;
+
     const protectedRoutes = ['/dashboard', '/leaderboard', '/shop', '/inventory', '/quiz', '/settings'];
     const authRoutes = ['/login', '/register'];
-
-    // Jeśli ładowanie trwa, nic nie rób
-    if (isLoading) return;
 
     const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
     const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
-    // Scenariusz A: Niezalogowany na chronionej stronie -> Login
     if (!user && isProtectedRoute) {
         router.push("/login");
     }
 
-    // Scenariusz B: Zalogowany na stronie logowania -> Dashboard
     if (user && isAuthRoute) {
         router.push("/dashboard");
     }
-
-  }, [user, isLoading, pathname, router]); // Uruchom zawsze, gdy zmieni się user lub strona
-
-  // --- KONIEC OCHRONY TRAS ---
+  }, [user, isLoading, pathname, router]);
 
   useEffect(() => {
-    const checkUser = async () => {
+    const initSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
@@ -74,17 +65,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
       }
     };
-    checkUser();
+
+    initSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUser(session.user);
-        await fetchProfile(session.user.id); 
+        if (!user || user.id !== session.user.id) {
+            await fetchProfile(session.user.id);
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setIsLoading(false);
-      } else if (event === 'INITIAL_SESSION') {
-        if (!session) setIsLoading(false);
       }
     });
 
@@ -95,7 +87,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (uid: string) => {
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', uid)
@@ -109,7 +101,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         setAvatar(data.avatar);
       }
     } catch (error) {
-      console.error("Błąd pobierania profilu:", error);
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -123,7 +115,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     });
     
     if (!error) {
-      router.refresh(); 
+      router.refresh();
       router.push("/dashboard");
     } else {
       setIsLoading(false);
@@ -156,46 +148,22 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             lives: 5 
         }]);
 
-      if (profileError) {
-        console.error("Błąd tworzenia profilu:", profileError);
-      } else {
+      if (!profileError) {
         setUser(data.user);
         setName(userName); 
         setXp(0);
         setLevel(1);
         setLives(5);
         setAvatar('🦊');
+        
+        router.refresh();
+        router.push("/dashboard");
       }
-
-      router.refresh();
-      router.push("/dashboard");
     } else {
        setIsLoading(false);
     }
     
     return { error: null };
-  };
-
-  const loginAsGuest = async () => {
-    setIsLoading(true);
-    const { data } = await supabase.auth.signInAnonymously();
-    
-    if (data?.user) {
-        await supabase.from('profiles').insert([{ 
-            id: data.user.id, 
-            username: 'Gracz Gość', 
-            avatar: '👻',
-            xp: 0,
-            level: 1,
-            lives: 5
-        }]);
-        
-        await fetchProfile(data.user.id);
-        router.refresh();
-        router.push("/dashboard");
-    } else {
-        setIsLoading(false);
-    }
   };
 
   const logout = async () => {
@@ -218,6 +186,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const addXp = async (amount: number) => {
     if (!user) return;
+    
     let newXp = xp + amount;
     let newLevel = level;
     let newLives = lives;
@@ -227,16 +196,21 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       newXp = newXp - 100;
       newLives = 5;
     }
+
     setXp(newXp);
     setLevel(newLevel);
     setLives(newLives);
 
-    await supabase.from('profiles').update({ xp: newXp, level: newLevel, lives: newLives }).eq('id', user.id);
+    await supabase
+        .from('profiles')
+        .update({ xp: newXp, level: newLevel, lives: newLives })
+        .eq('id', user.id);
   };
 
   const loseLife = async () => {
     if (!user) return;
     const newLives = lives > 0 ? lives - 1 : 0;
+    
     setLives(newLives);
     await supabase.from('profiles').update({ lives: newLives }).eq('id', user.id);
   };
@@ -272,7 +246,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     <GameContext.Provider value={{ 
         xp, level, lives, name, avatar, isLoading, user,
         addXp, loseLife, buyLives, resetProgress, updateProfile, 
-        loginAsGuest, loginWithEmail, registerWithEmail, logout 
+        loginWithEmail, registerWithEmail, logout 
     }}>
       {children}
     </GameContext.Provider>

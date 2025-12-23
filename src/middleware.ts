@@ -29,7 +29,6 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Ważne: To musi zostać, aby odświeżać token sesji!
   await supabase.auth.getUser()
 
   return response

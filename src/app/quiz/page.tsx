@@ -25,15 +25,13 @@ function QuizGame() {
 
   useEffect(() => {
     const fetchQuestions = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('questions')
         .select('*')
         .eq('category', category);
 
       if (data && data.length > 0) {
         setQuestions(data);
-      } else {
-        console.log("Brak pytań w bazie, używam awaryjnych.");
       }
       setLoadingQuestions(false);
     };
@@ -47,7 +45,7 @@ function QuizGame() {
       setXpGained(earnedXp);
       addXp(earnedXp);
     }
-  }, [isFinished]);
+  }, [isFinished, score, addXp]);
 
   const handleAnswer = (index: number) => {
     if (selectedAnswer !== null) return;

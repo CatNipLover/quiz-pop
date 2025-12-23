@@ -4,19 +4,9 @@ import Button3D from "@/components/Button3D";
 import { Trophy, Play, Star, LogOut, LogIn } from "lucide-react";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
-import { useRouter } from "next/navigation";
 
 export default function Home() {
   const { user, isLoading, logout } = useGame();
-  const router = useRouter();
-
-  const handlePlayClick = () => {
-    if (user) {
-      router.push("/dashboard");
-    } else {
-      router.push("/login");
-    }
-  };
 
   const handleLogout = async () => {
     await logout();
@@ -37,7 +27,7 @@ export default function Home() {
 
       <div className="grid gap-5 w-full max-w-xs">
         
-        <div onClick={!isLoading ? handlePlayClick : undefined} className="w-full">
+        <Link href={user ? "/dashboard" : "/login"} className="w-full">
           <Button3D variant="success" fullWidth>
             <div className="flex items-center justify-center gap-2">
               {isLoading ? (
@@ -53,7 +43,7 @@ export default function Home() {
               )}
             </div>
           </Button3D>
-        </div>
+        </Link>
 
         <Link href="/leaderboard" className="w-full">
           <Button3D variant="primary" fullWidth>

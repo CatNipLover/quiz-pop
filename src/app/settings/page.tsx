@@ -22,10 +22,9 @@ export default function SettingsPage() {
     if (inputName.length > 15) return alert("Za długa ksywka (max 15 znaków)!");
 
     setIsSaving(true);
-    
     await updateProfile(inputName, selectedAvatar); 
-    
     setIsSaving(false);
+    
     router.push("/dashboard");
   };
 
