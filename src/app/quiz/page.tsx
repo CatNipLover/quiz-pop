@@ -6,66 +6,15 @@ import Button3D from "@/components/Button3D";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
-
-const allQuestions: Record<string, any[]> = {
-  js: [
-    {
-      question: "Jaki jest wynik: typeof null?",
-      answers: ["null", "object", "undefined", "number"],
-      correct: 1,
-    },
-    {
-      question: "Która metoda dodaje element na koniec tablicy?",
-      answers: ["push()", "pop()", "shift()", "unshift()"],
-      correct: 0,
-    },
-    {
-        question: "Co robi 'NaN' w JS?",
-        answers: ["Not a Number", "New a Number", "Null and Null", "Nic"],
-        correct: 0,
-    }
-  ],
-  css: [
-    {
-      question: "Co oznacza skrót CSS?",
-      answers: ["Computer Style Sheets", "Cascading Style Sheets", "Creative Style System", "Colorful Style Sheets"],
-      correct: 1,
-    },
-    {
-      question: "Która właściwość zmienia kolor tekstu?",
-      answers: ["font-color", "text-color", "color", "background-color"],
-      correct: 2,
-    },
-    {
-        question: "Jak wyśrodkować div w Flexbox?",
-        answers: ["align: center", "justify-content: center", "text-align: center", "float: center"],
-        correct: 1,
-    }
-  ],
-  react: [
-    {
-      question: "Czym jest Hook w React?",
-      answers: ["Błędem", "Klasą", "Funkcją", "Komponentem"],
-      correct: 2,
-    },
-    {
-      question: "Jak przekazać dane do dziecka?",
-      answers: ["State", "Props", "Context", "Redux"],
-      correct: 1,
-    },
-    {
-        question: "Co zwraca useState?",
-        answers: ["Tablicę [wartość, funkcja]", "Obiekt {val, setVal}", "Tylko wartość", "Promise"],
-        correct: 0,
-    }
-  ]
-};
+import { supabase } from "@/utils/supabase";
 
 function QuizGame() {
   const { lives, loseLife, addXp } = useGame();
   const searchParams = useSearchParams();
   const category = searchParams.get("category") || "js";
-  const questions = allQuestions[category] || allQuestions["js"];
+  
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(true);
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -73,6 +22,24 @@ function QuizGame() {
   const [score, setScore] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [xpGained, setXpGained] = useState(0);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('category', category);
+
+      if (data && data.length > 0) {
+        setQuestions(data);
+      } else {
+        console.log("Brak pytań w bazie, używam awaryjnych.");
+      }
+      setLoadingQuestions(false);
+    };
+
+    fetchQuestions();
+  }, [category]);
 
   useEffect(() => {
     if (isFinished) {
@@ -86,7 +53,7 @@ function QuizGame() {
     if (selectedAnswer !== null) return;
 
     setSelectedAnswer(index);
-    const correct = index === questions[currentQuestion].correct;
+    const correct = index === questions[currentQuestion].correct_index;
     setIsCorrect(correct);
 
     if (correct) {
@@ -106,6 +73,14 @@ function QuizGame() {
       setIsFinished(true);
     }
   };
+
+  if (loadingQuestions) {
+    return <div className="text-center p-20 font-black text-2xl text-gray-400 animate-pulse">Ładowanie Pytań...</div>;
+  }
+
+  if (questions.length === 0) {
+    return <div className="text-center p-20 font-bold">Brak pytań w tej kategorii! Sprawdź bazę danych.</div>;
+  }
 
   if (lives === 0) {
     return (
@@ -154,14 +129,12 @@ function QuizGame() {
   return (
     <div className="max-w-2xl mx-auto py-8 px-4 space-y-8">
       
-      {/* Nagłówek Kategorii */}
       <div className="text-center">
         <span className="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest">
             Kategoria: {category}
         </span>
       </div>
 
-      {/* Pasek postępu */}
       <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden border border-gray-300">
         <div 
             className="h-full bg-primary transition-all duration-500 ease-out"
@@ -169,19 +142,17 @@ function QuizGame() {
         ></div>
       </div>
 
-      {/* Pytanie */}
       <div className="bg-white p-8 rounded-3xl border-2 border-gray-200 border-b-[6px] shadow-sm text-center min-h-[200px] flex items-center justify-center relative">
         <h2 className="text-2xl md:text-3xl font-black text-gray-800 relative z-10">
           {questionData.question}
         </h2>
       </div>
 
-      {/* Odpowiedzi */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {questionData.answers.map((answer: string, index: number) => {
           let variant: "neutral" | "success" | "danger" = "neutral";
           if (selectedAnswer !== null) {
-            if (index === questionData.correct) variant = "success";
+            if (index === questionData.correct_index) variant = "success";
             else if (index === selectedAnswer) variant = "danger";
           }
           return (
@@ -197,7 +168,6 @@ function QuizGame() {
         })}
       </div>
 
-      {/* Przycisk Dalej */}
       <div className="h-16 flex justify-center items-center">
         {selectedAnswer !== null && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
