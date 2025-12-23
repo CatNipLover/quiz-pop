@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({
             request,
           })
@@ -29,38 +29,14 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const url = request.nextUrl.clone()
-
-  const protectedRoutes = ['/dashboard', '/leaderboard', '/shop', '/inventory', '/quiz', '/settings']
-  
-  if (!user && protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))) {
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
-  }
-
-  const authRoutes = ['/login', '/register']
-  
-  if (user && authRoutes.some(route => request.nextUrl.pathname.startsWith(route))) {
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
-  }
+  // Ważne: To musi zostać, aby odświeżać token sesji!
+  await supabase.auth.getUser()
 
   return response
 }
 
 export const config = {
   matcher: [
-    /*
-     * Dopasuj wszystkie ścieżki z wyjątkiem:
-     * - _next/static (pliki statyczne)
-     * - _next/image (obrazy)
-     * - favicon.ico (ikona)
-     * - obrazy (svg, png, jpg, etc.)
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/utils/supabase";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation"; // <--- 1. DODANO usePathname
 
 type GameContextType = {
   xp: number;
@@ -36,6 +36,33 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   
   const router = useRouter();
+  const pathname = usePathname(); // <--- 2. Pobieramy aktualną ścieżkę
+
+  // --- OCHRONA TRAS (CLIENT SIDE) ---
+  useEffect(() => {
+    // Lista stron chronionych
+    const protectedRoutes = ['/dashboard', '/leaderboard', '/shop', '/inventory', '/quiz', '/settings'];
+    const authRoutes = ['/login', '/register'];
+
+    // Jeśli ładowanie trwa, nic nie rób
+    if (isLoading) return;
+
+    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+    const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+
+    // Scenariusz A: Niezalogowany na chronionej stronie -> Login
+    if (!user && isProtectedRoute) {
+        router.push("/login");
+    }
+
+    // Scenariusz B: Zalogowany na stronie logowania -> Dashboard
+    if (user && isAuthRoute) {
+        router.push("/dashboard");
+    }
+
+  }, [user, isLoading, pathname, router]); // Uruchom zawsze, gdy zmieni się user lub strona
+
+  // --- KONIEC OCHRONY TRAS ---
 
   useEffect(() => {
     const checkUser = async () => {
@@ -56,6 +83,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setIsLoading(false);
+      } else if (event === 'INITIAL_SESSION') {
+        if (!session) setIsLoading(false);
       }
     });
 
@@ -94,9 +123,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     });
     
     if (!error) {
+      router.refresh(); 
       router.push("/dashboard");
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
     return { error: error?.message || null };
   };
 
@@ -136,10 +167,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         setAvatar('🦊');
       }
 
+      router.refresh();
       router.push("/dashboard");
+    } else {
+       setIsLoading(false);
     }
     
-    setIsLoading(false);
     return { error: null };
   };
 
@@ -158,9 +191,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         }]);
         
         await fetchProfile(data.user.id);
+        router.refresh();
         router.push("/dashboard");
+    } else {
+        setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const logout = async () => {
@@ -183,7 +218,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const addXp = async (amount: number) => {
     if (!user) return;
-    
     let newXp = xp + amount;
     let newLevel = level;
     let newLives = lives;
@@ -193,21 +227,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       newXp = newXp - 100;
       newLives = 5;
     }
-
     setXp(newXp);
     setLevel(newLevel);
     setLives(newLives);
 
-    await supabase
-        .from('profiles')
-        .update({ xp: newXp, level: newLevel, lives: newLives })
-        .eq('id', user.id);
+    await supabase.from('profiles').update({ xp: newXp, level: newLevel, lives: newLives }).eq('id', user.id);
   };
 
   const loseLife = async () => {
     if (!user) return;
     const newLives = lives > 0 ? lives - 1 : 0;
-    
     setLives(newLives);
     await supabase.from('profiles').update({ lives: newLives }).eq('id', user.id);
   };
