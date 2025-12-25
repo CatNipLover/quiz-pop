@@ -2,11 +2,17 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
+
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https: 'unsafe-inline';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.hcaptcha.com https://hcaptcha.com https://*.hcaptcha.com;
     style-src 'self' 'unsafe-inline' https://hcaptcha.com https://*.hcaptcha.com;
     img-src 'self' blob: data: https://*.supabase.co https://*.hcaptcha.com;
     font-src 'self' data:;
@@ -23,12 +29,6 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-nonce', nonce)
   requestHeaders.set('Content-Security-Policy', cspHeader)
-
-  let response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  })
 
   response.headers.set('Content-Security-Policy', cspHeader)
   response.headers.set('X-Frame-Options', 'DENY')
@@ -49,7 +49,6 @@ export async function middleware(request: NextRequest) {
           response = NextResponse.next({
             request: { headers: requestHeaders },
           })
-          
           response.headers.set('Content-Security-Policy', cspHeader)
           response.headers.set('X-Frame-Options', 'DENY')
           response.headers.set('X-Content-Type-Options', 'nosniff')
