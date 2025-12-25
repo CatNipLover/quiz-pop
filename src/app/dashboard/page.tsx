@@ -75,11 +75,11 @@ const AchievementRow = ({ icon, title, desc, isUnlocked, badgeName }: any) => {
 };
 
 export default function DashboardPage() {
-  const { xp, level, logout, name, avatar, rank, gamesPlayed, perfectGames, selectedBadges, updateSelectedBadges, dailyChallenge } = useGame();
+  const { xp, level, logout, name, avatar, rank, gamesPlayed, perfectGames, selectedBadges, updateSelectedBadges, dailyChallenge, hasClutchWin } = useGame();
   
   const [allBadges, setAllBadges] = useState<any[]>([]);
   const [isChoosingBadges, setIsChoosingBadges] = useState(false);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false); // NOWE
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [tempSelected, setTempSelected] = useState<number[]>([]);
 
   const xpPercentage = Math.min(xp, 100); 
@@ -110,15 +110,21 @@ export default function DashboardPage() {
   };
 
   const saveBadges = async () => {
-    await updateSelectedBadges(tempSelected);
-    setIsChoosingBadges(false);
+    try {
+      await updateSelectedBadges(tempSelected);
+      setIsChoosingBadges(false);
+    } catch (error) {
+      console.error(error);
+      alert("Wystąpił błąd zapisu! Spróbuj odświeżyć stronę.");
+    }
   };
 
-  const isBadgeUnlocked = (b: any) => (
-    b.criteria_type === 'games' ? gamesPlayed >= b.criteria_value : 
-    b.criteria_type === 'perfect' ? perfectGames >= b.criteria_value : 
-    level >= b.criteria_value
-  );
+  const isBadgeUnlocked = (b: any) => {
+    if (b.criteria_type === 'clutch') return hasClutchWin;
+    if (b.criteria_type === 'games') return gamesPlayed >= b.criteria_value;
+    if (b.criteria_type === 'perfect') return perfectGames >= b.criteria_value;
+    return level >= b.required_level;
+  };
 
   const displayBadges = selectedBadges?.length > 0 ? allBadges.filter(b => selectedBadges.includes(b.id)) : [];
 
@@ -201,7 +207,14 @@ export default function DashboardPage() {
               <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200 border-2 border-gray-100">
                   <div className="text-center mb-6"><h2 className="text-2xl font-black text-gray-800">Wybierz Odznaki</h2><p className="text-gray-500 font-bold">Max 3 widoczne w profilu.</p></div>
                   <div className="grid grid-cols-3 gap-3 mb-6 max-h-[60vh] overflow-y-auto p-2 custom-scrollbar">{allBadges.map(b => { const unlocked = isBadgeUnlocked(b); const isSelected = tempSelected.includes(b.id); const Icon = iconMap[b.icon_name] || Star; const style = getBadgeStyle(b.name); return (<button key={b.id} disabled={!unlocked} onClick={() => toggleBadge(b.id)} className={`relative p-3 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all shadow-sm ${!unlocked ? "opacity-50 grayscale cursor-not-allowed border-gray-100 bg-gray-50 shadow-none" : "cursor-pointer"} ${isSelected ? "border-primary bg-purple-50 ring-2 ring-primary ring-offset-2 shadow-md" : "border-gray-200 hover:border-gray-300 hover:-translate-y-1 hover:shadow-md"}`}>{isSelected && <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-0.5 shadow-sm"><Check size={12}/></div>}<div className={`w-12 h-12 rounded-xl flex items-center justify-center border-b-2 shadow-sm ${unlocked ? style : 'bg-gray-100 border-gray-200'}`}><Icon size={24} /></div><span className="text-xs font-bold text-gray-700 leading-tight">{b.name}</span></button>)})}</div>
-                  <div className="flex gap-3"><div className="w-full" onClick={() => setIsChoosingBadges(false)}><Button3D variant="neutral" fullWidth>Anuluj</Button3D></div><div className="w-full" onClick={saveBadges}><Button3D variant="success" fullWidth>Zapisz</Button3D></div></div>
+                  <div className="flex gap-3">
+                      <div className="w-full">
+                          <Button3D variant="neutral" fullWidth onClick={() => setIsChoosingBadges(false)}>Anuluj</Button3D>
+                      </div>
+                      <div className="w-full">
+                          <Button3D variant="success" fullWidth onClick={saveBadges}>Zapisz</Button3D>
+                      </div>
+                  </div>
               </div>
           </div>
       )}
